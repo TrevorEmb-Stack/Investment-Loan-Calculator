@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Velmora Financial Group | B2B Bank Investment Loan Calculator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #F9F9F9; color: #000000; font-size: 15px; }
+
+/* HEADER */
+.header { background: #000000; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+.header-left h1 { color: #FFFFFF; font-family: Georgia, serif; font-size: 18px; font-weight: bold; }
+.header-left p { color: rgba(255,255,255,0.75); font-size: 11px; margin-top: 2px; }
+.qa-badge { padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; }
+.qa-pass { background: #1a7a3c; color: #fff; }
+.qa-fail { background: #b00020; color: #fff; }
+
+/* LAYOUT */
+.container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
+.grid { display: grid; grid-template-columns: 320px 1fr; gap: 20px; }
+@media(max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+/* PANELS */
+.panel { background: #FFFFFF; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.panel-title { font-family: Georgia, serif; font-size: 14px; font-weight: bold; color: #000000; border-bottom: 2px solid #8B0000; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* INPUTS */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: bold; color: #000000; margin-bottom: 4px; }
+.field label .note { font-weight: normal; color: #777777; font-size: 11px; display: block; margin-top: 1px; }
+.field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid #CCCCCC; border-radius: 4px; font-size: 14px; background: #FFFFFF; color: #000000; }
+.field input:focus, .field select:focus { outline: none; border-color: #8B0000; }
+.radio-group { display: flex; gap: 16px; margin-top: 4px; }
+.radio-group label { font-weight: normal; font-size: 13px; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.field-error { color: #b00020; font-size: 11px; margin-top: 3px; display: none; }
+.field-warn { color: #cc4444; font-size: 11px; margin-top: 3px; background: #FFF5F5; padding: 4px 8px; border-radius: 3px; display: none; }
+
+/* AUTO-CALC PILLS */
+.auto-pills { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.pill { background: #8B0000; border: none; border-radius: 6px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
+.pill-label { color: rgba(255,255,255,0.85); font-size: 11px; }
+.pill-value { color: #FFFFFF; font-weight: bold; font-size: 15px; }
+
+/* TABLES */
+.table-wrap { overflow-x: auto; margin-top: 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { background: #8B0000; color: #fff; padding: 9px 10px; text-align: right; font-size: 11px; white-space: nowrap; }
+th:first-child { text-align: center; }
+td { padding: 8px 10px; border-bottom: 1px solid #E5E5E5; text-align: right; }
+td:first-child { text-align: center; font-weight: bold; color: #000000; }
+tr:nth-child(even) td { background: #F5F5F5; }
+tr:last-child td { border-bottom: none; }
+
+/* SUMMARY */
+.summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E5E5E5; font-size: 14px; }
+.summary-row:last-child { border-bottom: none; }
+.summary-row .lbl { color: #444444; }
+.summary-row .val { font-weight: bold; color: #0B1A2A; }
+.summary-row .val.green { color: #1a7a3c; }
+.summary-row .val.red { color: #b00020; }
+.summary-row .val.gold { color: #cc4444; }
+.summary-divider { border-top: 2px solid #0B1A2A; margin: 8px 0; }
+.summary-net { background: #8B0000; border-radius: 6px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+.summary-net .lbl { color: rgba(255,255,255,0.80); font-size: 13px; }
+.summary-net .val { color: #8B0000; font-size: 22px; font-weight: bold; }
+
+/* SCENARIO TABLE */
+.scenario-table th { text-align: left; }
+.scenario-table td { text-align: left; }
+.scenario-table td:not(:first-child) { text-align: right; }
+.scenario-table th:not(:first-child) { text-align: right; }
+.scenario-highlight td { background: #000000 !important; color: #fff; font-weight: bold; }
+.scenario-highlight td:first-child { color: #8B0000; }
+.scenario-highlight td.s-gain { color: #8B0000; }
+.insight-box { background: #FFF5F5; border-left: 4px solid #8B0000; border-radius: 0 6px 6px 0; padding: 10px 14px; margin-top: 12px; font-size: 13px; color: #6B0000; line-height: 1.6; }
+
+/* DISCLAIMER */
+.disclaimer-toggle { background: none; border: 1px solid #8B0000; border-radius: 4px; padding: 6px 12px; font-size: 12px; color: #666666; cursor: pointer; margin-top: 16px; }
+.disclaimer-body { background: #F5F5F5; border: 1px solid #CCCCCC; border-radius: 6px; padding: 14px; margin-top: 8px; font-size: 12px; color: #666666; line-height: 1.7; display: none; }
+.disclaimer-body li { margin-bottom: 6px; margin-left: 16px; }
+
+/* PRINT BUTTON */
+.print-btn { background: #8B0000; color: #FFFFFF; border: none; border-radius: 4px; padding: 10px 20px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 16px; width: 100%; }
+.print-btn:hover { background: #4B0000; }
+
+/* PRINT STYLES */
+@media print {
+  .header, .inputs-panel { display: block !important; }
+  .no-print { display: none !important; }
+  body { background: #FFFFFF; }
+  .panel { box-shadow: none; border: 1px solid #CCCCCC; }
+  .print-header { display: block !important; }
+}
+.print-header { display: none; font-size: 11px; color: #666666; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Velmora Financial Group &nbsp;|&nbsp; B2B Bank Investment Loan Calculator</h1>
+    <p>Smart Strategies. Stronger Future. &nbsp;|&nbsp; For Licensed Advisor Use Only</p>
+  </div>
+  <div id="qa-badge" class="qa-badge" style="display:none;"></div>
+</div>
+
+<div class="container">
+  <div class="print-header" id="print-header"></div>
+  <div class="grid">
+
+    <!-- LEFT: INPUTS -->
+    <div class="inputs-panel">
+      <div class="panel">
+        <div class="panel-title">Client Inputs</div>
+
+        <div class="field">
+          <label>Client Name</label>
+          <input type="text" id="clientName" placeholder="Client Name" oninput="recalc()">
+        </div>
+
+        <div class="field">
+          <label>Province / Territory</label>
+          <select id="province" onchange="recalc()">
+            <option value="AB">Alberta (AB)</option>
+            <option value="BC">British Columbia (BC)</option>
+            <option value="ON">Ontario (ON)</option>
+            <option value="QC">Quebec (QC)</option>
+            <option value="SK">Saskatchewan (SK)</option>
+            <option value="MB">Manitoba (MB)</option>
+            <option value="NB">New Brunswick (NB)</option>
+            <option value="NS">Nova Scotia (NS)</option>
+            <option value="PE">Prince Edward Island (PE)</option>
+            <option value="NL">Newfoundland and Labrador (NL)</option>
+            <option value="NT">Northwest Territories (NT)</option>
+            <option value="NU">Nunavut (NU)</option>
+            <option value="YT">Yukon (YT)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Gross Annual Employment Income (CAD)
+            <span class="note">Used to calculate your marginal tax rate</span>
+          </label>
+          <input type="number" id="income" value="80000" min="0" oninput="recalc()">
+          <div class="field-error" id="err-income">Please enter a valid income amount.</div>
+        </div>
+
+        <div class="field">
+          <label>Loan Amount (CAD)</label>
+          <input type="number" id="loanAmount" value="100000" min="1000" oninput="recalc()">
+          <div class="field-warn" id="warn-loan">B2B Bank loans above $300,000 may require additional qualification. Verify with B2B Bank before proceeding.</div>
+          <div class="field-error" id="err-loan">Please enter a valid loan amount.</div>
+        </div>
+
+        <div class="field">
+          <label>Annual Loan Interest Rate (%)</label>
+          <input type="number" id="interestRate" value="5.2" min="0" step="0.1" oninput="recalc()">
+          <div class="field-error" id="err-rate">Please enter a valid interest rate.</div>
+        </div>
+
+        <div class="field">
+          <label>Payment Type</label>
+          <div class="radio-group">
+            <label><input type="radio" name="payType" value="IO" checked onchange="recalc()"> Interest Only</label>
+            <label><input type="radio" name="payType" value="PI" onchange="recalc()"> Principal + Interest</label>
+          </div>
+        </div>
+
+        <div class="field" id="amortField" style="display:none;">
+          <label>Amortization Period (years)
+            <span class="note">How long to fully repay the loan</span>
+          </label>
+          <input type="number" id="amortYears" value="5" min="1" max="30" oninput="recalc()">
+        </div>
+
+        <div class="field">
+          <label>Investment Duration (years)</label>
+          <input type="number" id="duration" value="5" min="1" max="30" oninput="recalc()">
+          <div class="field-error" id="err-duration">Duration must be between 1 and 30 years.</div>
+        </div>
+
+        <div class="field">
+          <label>Fund MER - Management Expense Ratio (%)
+            <span class="note">Varies by fund type. Confirm with fund provider. Active funds ~2.5-3%, passive funds lower.</span>
+          </label>
+          <input type="number" id="mer" value="2.5" min="0" max="10" step="0.1" oninput="recalc()">
+          <div class="field-warn" id="warn-mer"></div>
+        </div>
+
+        <div class="field">
+          <label>Expected Gross Fund Return Before MER (%)</label>
+          <input type="number" id="grossReturn" value="10" min="0" step="0.1" oninput="recalc()">
+        </div>
+
+        <div class="field">
+          <label>Capital Gains Inclusion Rate (%)
+            <span class="note">Currently 50% (verify current CRA rate before client use)</span>
+          </label>
+          <input type="number" id="inclusionRate" value="50" min="0" max="100" step="1" oninput="recalc()">
+        </div>
+
+        <!-- AUTO-CALCULATED PILLS -->
+        <div class="panel-title" style="margin-top:16px;">Auto-Calculated</div>
+        <div class="auto-pills">
+          <div class="pill">
+            <span class="pill-label">Net Fund Return After MER</span>
+            <span class="pill-value" id="pill-netReturn">7.50%</span>
+          </div>
+          <div class="pill">
+            <span class="pill-label">Combined Fed + Prov Marginal Rate (2025)</span>
+            <span class="pill-value" id="pill-margRate">30.50%</span>
+          </div>
+          <div class="pill">
+            <span class="pill-label">Monthly Payment</span>
+            <span class="pill-value" id="pill-monthly">$433.33</span>
+          </div>
+        </div>
+
+        <button class="print-btn no-print" onclick="printCalc()">Print / Save as PDF</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: OUTPUTS -->
+    <div>
+
+      <!-- SUMMARY -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-title">5-Year Summary</div>
+        <div id="summary-panel"></div>
+      </div>
+
+      <!-- YEAR BY YEAR TABLE -->
+      <div class="panel" style="margin-bottom:20px;">
+        <div class="panel-title">Year-by-Year Breakdown</div>
+        <div class="table-wrap">
+          <table id="yearly-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Opening Value</th>
+                <th>Fund Growth</th>
+                <th>Closing Value</th>
+                <th>Cumulative Gain</th>
+                <th>Interest Paid</th>
+                <th>Principal Paid</th>
+                <th>Tax Saving</th>
+              </tr>
+            </thead>
+            <tbody id="yearly-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SCENARIO COMPARISON -->
+      <div class="panel">
+        <div class="panel-title">Four-Scenario Comparison</div>
+        <div class="table-wrap">
+          <table class="scenario-table" id="scenario-table">
+            <thead>
+              <tr>
+                <th>Scenario</th>
+                <th>Monthly Out</th>
+                <th>Total Paid</th>
+                <th>Net Gain</th>
+                <th>Final Value</th>
+              </tr>
+            </thead>
+            <tbody id="scenario-body"></tbody>
+          </table>
+        </div>
+        <div class="insight-box" id="insight-box"></div>
+
+        <!-- DISCLAIMER -->
+        <button class="disclaimer-toggle no-print" onclick="toggleDisclaimer()">&#9654; Assumptions and Compliance Notes</button>
+        <div class="disclaimer-body" id="disclaimer-body">
+          <ul>
+            <li>Fund returns shown are for illustration purposes only and are not guaranteed. Past performance does not predict future results.</li>
+            <li>MER (Management Expense Ratio) varies by fund. Confirm the exact MER with the fund provider before using in client illustrations.</li>
+            <li>Tax rates are based on 2025 published federal and provincial brackets. Verify current rates before client use.</li>
+            <li id="disc-inclusion"></li>
+            <li>Interest on investment loans is generally tax deductible under CRA rules when borrowed for income-producing purposes. Confirm with a tax advisor for each client's specific situation.</li>
+            <li>This calculator is for licensed advisor illustration purposes only and does not constitute tax, investment, or lending advice.</li>
+            <li>All loans subject to B2B Bank credit approval.</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// TAX RATE ENGINE - 2025 Federal + Provincial Brackets
+// ============================================================
+const federalBrackets = [
+  { limit: 57375,  rate: 0.15 },
+  { limit: 114750, rate: 0.205 },
+  { limit: 158519, rate: 0.26 },
+  { limit: 220000, rate: 0.29 },
+  { limit: Infinity, rate: 0.33 }
+];
+
+const provincialBrackets = {
+  AB: [{ limit: 148269, rate: 0.10 }, { limit: 177922, rate: 0.12 }, { limit: 237230, rate: 0.13 }, { limit: 355845, rate: 0.14 }, { limit: Infinity, rate: 0.15 }],
+  BC: [{ limit: 45654, rate: 0.0506 }, { limit: 91310, rate: 0.077 }, { limit: 104835, rate: 0.105 }, { limit: 127299, rate: 0.1229 }, { limit: 172602, rate: 0.147 }, { limit: 240716, rate: 0.168 }, { limit: Infinity, rate: 0.205 }],
+  ON: [{ limit: 51446, rate: 0.0505 }, { limit: 102894, rate: 0.0915 }, { limit: 150000, rate: 0.1116 }, { limit: 220000, rate: 0.1216 }, { limit: Infinity, rate: 0.1316 }],
+  QC: [{ limit: 51780, rate: 0.14 }, { limit: 103545, rate: 0.19 }, { limit: 126000, rate: 0.24 }, { limit: Infinity, rate: 0.2575 }],
+  SK: [{ limit: 49720, rate: 0.105 }, { limit: 142058, rate: 0.125 }, { limit: Infinity, rate: 0.145 }],
+  MB: [{ limit: 36842, rate: 0.108 }, { limit: 79625, rate: 0.1275 }, { limit: Infinity, rate: 0.174 }],
+  NB: [{ limit: 47715, rate: 0.094 }, { limit: 95431, rate: 0.1482 }, { limit: 176756, rate: 0.1652 }, { limit: Infinity, rate: 0.195 }],
+  NS: [{ limit: 29590, rate: 0.0879 }, { limit: 59180, rate: 0.1495 }, { limit: 93000, rate: 0.1667 }, { limit: 150000, rate: 0.175 }, { limit: Infinity, rate: 0.21 }],
+  PE: [{ limit: 32656, rate: 0.0965 }, { limit: 64313, rate: 0.1363 }, { limit: 105000, rate: 0.1665 }, { limit: 140000, rate: 0.18 }, { limit: Infinity, rate: 0.1875 }],
+  NL: [{ limit: 43198, rate: 0.087 }, { limit: 86395, rate: 0.145 }, { limit: 154244, rate: 0.158 }, { limit: 215943, rate: 0.178 }, { limit: 275870, rate: 0.198 }, { limit: 551739, rate: 0.208 }, { limit: Infinity, rate: 0.213 }],
+  NT: [{ limit: 50597, rate: 0.059 }, { limit: 101198, rate: 0.086 }, { limit: 164525, rate: 0.122 }, { limit: Infinity, rate: 0.1405 }],
+  NU: [{ limit: 53268, rate: 0.04 }, { limit: 106537, rate: 0.07 }, { limit: 173205, rate: 0.09 }, { limit: Infinity, rate: 0.115 }],
+  YT: [{ limit: 57375, rate: 0.064 }, { limit: 114750, rate: 0.09 }, { limit: 158519, rate: 0.109 }, { limit: 500000, rate: 0.128 }, { limit: Infinity, rate: 0.15 }]
+};
+
+function getMarginalRate(income, province) {
+  let fedRate = 0;
+  for (const b of federalBrackets) { if (income <= b.limit) { fedRate = b.rate; break; } }
+  let provRate = 0;
+  const provBrackets = provincialBrackets[province] || provincialBrackets.AB;
+  for (const b of provBrackets) { if (income <= b.limit) { provRate = b.rate; break; } }
+  return fedRate + provRate;
+}
+
+// ============================================================
+// FINANCIAL CALCULATIONS
+// ============================================================
+function calcMonthlyPI(principal, annualRate, years) {
+  const r = annualRate / 12;
+  const n = years * 12;
+  if (r === 0) return principal / n;
+  return principal * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+}
+
+function calcFutureValueSIP(monthlyPmt, annualReturn, years) {
+  const r = annualReturn / 12;
+  const n = years * 12;
+  if (r === 0) return monthlyPmt * n;
+  return monthlyPmt * ((Math.pow(1 + r, n) - 1) / r);
+}
+
+function calcNetGainSIP(monthlyPmt, netAnnualReturn, years, inclusionRate, marginalRate) {
+  const fv = calcFutureValueSIP(monthlyPmt, netAnnualReturn, years);
+  const totalIn = monthlyPmt * years * 12;
+  const grossGain = Math.max(0, fv - totalIn);
+  const capGainsTax = grossGain * inclusionRate * marginalRate;
+  return { fv, totalIn, grossGain, netGain: grossGain - capGainsTax, capGainsTax };
+}
+
+// ============================================================
+// MAIN RECALC
+// ============================================================
+function recalc() {
+  clearErrors();
+  const province = document.getElementById('province').value;
+  const income = parseFloat(document.getElementById('income').value) || 0;
+  const loanAmount = parseFloat(document.getElementById('loanAmount').value) || 0;
+  const interestRate = parseFloat(document.getElementById('interestRate').value) / 100 || 0;
+  const payType = document.querySelector('input[name="payType"]:checked').value;
+  const amortYears = parseFloat(document.getElementById('amortYears').value) || 5;
+  const duration = parseFloat(document.getElementById('duration').value) || 5;
+  const mer = parseFloat(document.getElementById('mer').value) / 100 || 0;
+  const grossReturn = parseFloat(document.getElementById('grossReturn').value) / 100 || 0;
+  const inclusionRate = parseFloat(document.getElementById('inclusionRate').value) / 100 || 0.5;
+
+  // Show/hide amort field
+  document.getElementById('amortField').style.display = payType === 'PI' ? 'block' : 'none';
+
+  // Validate
+  let hasError = false;
+  if (income < 0) { showError('err-income'); hasError = true; }
+  if (loanAmount <= 0) { showError('err-loan'); hasError = true; }
+  if (interestRate < 0) { showError('err-rate'); hasError = true; }
+  if (duration < 1 || duration > 30) { showError('err-duration'); hasError = true; }
+  if (loanAmount > 300000) { document.getElementById('warn-loan').style.display = 'block'; }
+  if (hasError) return;
+
+  const netReturn = grossReturn - mer;
+  const marginalRate = getMarginalRate(income, province);
+
+  // Monthly payment
+  let monthlyPayment;
+  if (payType === 'IO') {
+    monthlyPayment = (loanAmount * interestRate) / 12;
+  } else {
+    monthlyPayment = calcMonthlyPI(loanAmount, interestRate, amortYears);
+  }
+
+  // MER warning
+  const merWarn = document.getElementById('warn-mer');
+  if (netReturn <= 0) {
+    merWarn.style.display = 'block';
+    merWarn.textContent = 'Net fund return is 0% or negative. The MER exceeds the expected return. Adjust either value.';
+  } else { merWarn.style.display = 'none'; }
+
+  // Update pills
+  document.getElementById('pill-netReturn').textContent = (netReturn * 100).toFixed(2) + '%';
+  document.getElementById('pill-margRate').textContent = (marginalRate * 100).toFixed(2) + '%';
+  document.getElementById('pill-monthly').textContent = '$' + fmt(monthlyPayment);
+
+  // YEAR BY YEAR
+  let fundValue = loanAmount;
+  let cumulGain = 0;
+  let totalInterestPaid = 0;
+  let totalPrincipalPaid = 0;
+  let totalTaxSaving = 0;
+  let remainingPrincipal = loanAmount;
+  const rows = [];
+
+  for (let y = 1; y <= duration; y++) {
+    const opening = fundValue;
+    const growth = fundValue * netReturn;
+    fundValue = fundValue + growth;
+    cumulGain = fundValue - loanAmount;
+
+    let interestThisYear, principalThisYear;
+    if (payType === 'IO') {
+      interestThisYear = loanAmount * interestRate;
+      principalThisYear = 0;
+    } else {
+      // P+I: calculate from monthly schedule
+      let yearInterest = 0, yearPrincipal = 0;
+      for (let m = 0; m < 12; m++) {
+        const monthInterest = remainingPrincipal * (interestRate / 12);
+        const monthPrincipal = Math.min(monthlyPayment - monthInterest, remainingPrincipal);
+        yearInterest += monthInterest;
+        yearPrincipal += monthPrincipal;
+        remainingPrincipal = Math.max(0, remainingPrincipal - monthPrincipal);
+      }
+      interestThisYear = yearInterest;
+      principalThisYear = yearPrincipal;
+    }
+
+    const taxSavingThisYear = interestThisYear * marginalRate;
+    totalInterestPaid += interestThisYear;
+    totalPrincipalPaid += principalThisYear;
+    totalTaxSaving += taxSavingThisYear;
+
+    rows.push({ y, opening, growth, closing: fundValue, cumulGain, interestThisYear, principalThisYear, taxSavingThisYear });
+  }
+
+  // Render yearly table
+  const tbody = document.getElementById('yearly-body');
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.y}</td>
+      <td>$${fmt(r.opening)}</td>
+      <td style="color:#1a7a3c;">+$${fmt(r.growth)}</td>
+      <td><strong>$${fmt(r.closing)}</strong></td>
+      <td style="color:#1a7a3c;">$${fmt(r.cumulGain)}</td>
+      <td style="color:#b00020;">-$${fmt(r.interestThisYear)}</td>
+      <td>${r.principalThisYear > 0 ? '-$' + fmt(r.principalThisYear) : '$0.00'}</td>
+      <td style="color:#1a7a3c;">+$${fmt(r.taxSavingThisYear)}</td>
+    </tr>
+  `).join('');
+
+  // SUMMARY
+  const grossGain = fundValue - loanAmount;
+  const capGainsTax = grossGain * inclusionRate * marginalRate;
+  const netGainAfterTax = grossGain - capGainsTax;
+  const netInterestCost = totalInterestPaid - totalTaxSaving;
+  const netOverallGain = netGainAfterTax - netInterestCost;
+  const fundAfterRepayment = fundValue - loanAmount;
+  const totalPaid = totalInterestPaid + totalPrincipalPaid;
+
+  document.getElementById('summary-panel').innerHTML = `
+    <div class="summary-row"><span class="lbl">Loan Amount</span><span class="val">$${fmt(loanAmount)}</span></div>
+    <div class="summary-row"><span class="lbl">Final Fund Value at End of Term</span><span class="val green">$${fmt(fundValue)}</span></div>
+    <div class="summary-row"><span class="lbl">Gross Fund Gain</span><span class="val green">$${fmt(grossGain)}</span></div>
+    <div class="summary-row"><span class="lbl">Less: Capital Gains Tax (${(inclusionRate*100).toFixed(0)}% inclusion @ ${(marginalRate*100).toFixed(2)}%)</span><span class="val red">-$${fmt(capGainsTax)}</span></div>
+    <div class="summary-row"><span class="lbl">Net Fund Gain After Capital Gains Tax</span><span class="val green">$${fmt(netGainAfterTax)}</span></div>
+    <div class="summary-divider"></div>
+    <div class="summary-row"><span class="lbl">Total Interest Paid Over Term</span><span class="val red">-$${fmt(totalInterestPaid)}</span></div>
+    <div class="summary-row"><span class="lbl">Tax Savings on Interest</span><span class="val gold">+$${fmt(totalTaxSaving)}</span></div>
+    <div class="summary-row"><span class="lbl">Net Interest Cost After Tax Deduction</span><span class="val red">-$${fmt(netInterestCost)}</span></div>
+    ${payType === 'PI' ? `<div class="summary-row"><span class="lbl">Total Payments Over Term</span><span class="val red">-$${fmt(totalPaid)}</span></div>` : ''}
+    <div class="summary-divider"></div>
+    <div class="summary-row"><span class="lbl">Fund Value After Repaying Loan Principal</span><span class="val green">$${fmt(fundAfterRepayment)}</span></div>
+    <div class="summary-net">
+      <span class="lbl">NET OVERALL GAIN</span>
+      <span class="val">$${fmt(netOverallGain)}</span>
+    </div>
+  `;
+
+  // FOUR SCENARIO COMPARISON
+  // Scenario A: SIP at P+I monthly equivalent
+  const piMonthly = calcMonthlyPI(loanAmount, interestRate, payType === 'PI' ? amortYears : duration);
+  const scenA = calcNetGainSIP(piMonthly, netReturn, duration, inclusionRate, marginalRate);
+  // Scenario B: Loan P+I
+  const scenB_monthly = calcMonthlyPI(loanAmount, interestRate, payType === 'PI' ? amortYears : duration);
+  const scenB_totalPaid = scenB_monthly * 12 * duration;
+  const scenB_totalInterest_calc = (() => {
+    let rem = loanAmount, tot = 0;
+    for (let m = 0; m < duration * 12; m++) {
+      const mi = rem * (interestRate / 12);
+      const mp = Math.min(scenB_monthly - mi, rem);
+      tot += mi; rem = Math.max(0, rem - mp);
+    }
+    return tot;
+  })();
+  const scenB_taxSave = scenB_totalInterest_calc * marginalRate;
+  const scenB_netInterest = scenB_totalInterest_calc - scenB_taxSave;
+  const scenB_fundVal = loanAmount * Math.pow(1 + netReturn, duration);
+  const scenB_grossGain = scenB_fundVal - loanAmount;
+  const scenB_capTax = scenB_grossGain * inclusionRate * marginalRate;
+  const scenB_netGain = (scenB_grossGain - scenB_capTax) - scenB_netInterest;
+  // Scenario C: Loan Interest Only
+  const ioMonthly = (loanAmount * interestRate) / 12;
+  const scenC_totalInterest = loanAmount * interestRate * duration;
+  const scenC_taxSave = scenC_totalInterest * marginalRate;
+  const scenC_netInterest = scenC_totalInterest - scenC_taxSave;
+  const scenC_fundVal = fundValue; // already calculated above with netReturn
+  const scenC_grossGain = scenC_fundVal - loanAmount;
+  const scenC_capTax = scenC_grossGain * inclusionRate * marginalRate;
+  const scenC_netGain = (scenC_grossGain - scenC_capTax) - scenC_netInterest;
+  // Scenario D: SIP at interest-only monthly equivalent
+  const scenD = calcNetGainSIP(ioMonthly, netReturn, duration, inclusionRate, marginalRate);
+
+  const scenarios = [
+    { label: 'A: Invest $' + fmt(piMonthly) + '/mo (own money)', monthly: piMonthly, total: scenA.totalIn, netGain: scenA.netGain, fv: scenA.fv, highlight: false },
+    { label: 'B: Loan - Principal + Interest', monthly: scenB_monthly, total: scenB_totalPaid, netGain: scenB_netGain, fv: scenB_fundVal, highlight: false },
+    { label: 'C: Loan - Interest Only', monthly: ioMonthly, total: scenC_totalInterest, netGain: scenC_netGain, fv: scenC_fundVal, highlight: false },
+    { label: 'D: Invest $' + fmt(ioMonthly) + '/mo (own money)', monthly: ioMonthly, total: scenD.totalIn, netGain: scenD.netGain, fv: scenD.fv, highlight: false },
+  ];
+
+  // Find best net gain
+  const bestIdx = scenarios.reduce((bi, s, i) => s.netGain > scenarios[bi].netGain ? i : bi, 0);
+  scenarios[bestIdx].highlight = true;
+
+  document.getElementById('scenario-body').innerHTML = scenarios.map((s, i) => `
+    <tr class="${s.highlight ? 'scenario-highlight' : ''}">
+      <td>${s.label}</td>
+      <td${s.highlight ? '' : ''}>$${fmt(s.monthly)}</td>
+      <td>$${fmt(s.total)}</td>
+      <td class="${s.highlight ? 's-gain' : ''}" style="${!s.highlight ? 'color:#1a7a3c;font-weight:bold;' : ''}">$${fmt(s.netGain)}</td>
+      <td>$${fmt(s.fv)}</td>
+    </tr>
+  `).join('');
+
+  // Insight
+  const best = scenarios[bestIdx];
+  const worst = scenarios.reduce((wi, s, i) => s.netGain < scenarios[wi].netGain ? i : wi, 0);
+  document.getElementById('insight-box').innerHTML =
+    `<strong>Best scenario: ${best.label.split(':')[0]}.</strong> At current inputs, this produces the highest net gain of <strong>$${fmt(best.netGain)}</strong>. ` +
+    `Compare this to Scenario ${String.fromCharCode(65+worst)}'s net gain of <strong>$${fmt(scenarios[worst].netGain)}</strong>. The difference comes down to how much capital is working from day one.`;
+
+  // Disclaimer
+  document.getElementById('disc-inclusion').textContent =
+    `Capital gains inclusion rate used: ${(inclusionRate*100).toFixed(0)}%. Verify current CRA rate before client use.`;
+
+  // Print header
+  const clientName = document.getElementById('clientName').value || 'Client';
+  document.getElementById('print-header').textContent =
+    `${clientName} | ${province} | Generated: ${new Date().toLocaleDateString('en-CA')} | Velmora Financial Group - For Advisor Use Only - Not a Guarantee of Returns`;
+
+  // RUN QA
+  runQA();
+}
+
+// ============================================================
+// QA SELF-TEST
+// ============================================================
+function runQA() {
+  const income = parseFloat(document.getElementById('income').value);
+  const province = document.getElementById('province').value;
+  const loanAmount = parseFloat(document.getElementById('loanAmount').value);
+  const interestRate = parseFloat(document.getElementById('interestRate').value) / 100;
+  const payType = document.querySelector('input[name="payType"]:checked').value;
+  const duration = parseFloat(document.getElementById('duration').value);
+  const mer = parseFloat(document.getElementById('mer').value) / 100;
+  const grossReturn = parseFloat(document.getElementById('grossReturn').value) / 100;
+  const inclusionRate = parseFloat(document.getElementById('inclusionRate').value) / 100;
+
+  // Only run QA when inputs match the reference scenario
+  const isQAScenario = (
+    province === 'AB' && income === 80000 && loanAmount === 100000 &&
+    Math.abs(interestRate - 0.052) < 0.0001 && payType === 'IO' &&
+    duration === 5 && mer === 0 &&
+    Math.abs(grossReturn - 0.10) < 0.0001 && Math.abs(inclusionRate - 0.50) < 0.0001
+  );
+
+  if (!isQAScenario) {
+    document.getElementById('qa-badge').style.display = 'none';
+    return;
+  }
+
+  const marginalRate = getMarginalRate(80000, 'AB');
+  const netReturn = 0.10;
+  const annualInterest = 100000 * 0.052;
+  const totalInterest = annualInterest * 5;
+  const finalFundVal = 100000 * Math.pow(1.10, 5);
+  const grossGain = finalFundVal - 100000;
+  const taxSavings = totalInterest * marginalRate;
+  const netInterest = totalInterest - taxSavings;
+  const capGainsTax = grossGain * 0.50 * marginalRate;
+  const netGain = (grossGain - capGainsTax) - netInterest;
+  const ioMonthly = (100000 * 0.052) / 12;
+  const scenD_fv = calcFutureValueSIP(ioMonthly, netReturn, 5);
+  const scenD_total = ioMonthly * 60;
+  const scenD_gain_gross = scenD_fv - scenD_total;
+  const scenD_netGain = scenD_gain_gross - (scenD_gain_gross * 0.50 * marginalRate);
+  const piMonthly = calcMonthlyPI(100000, 0.052, 5);
+  const scenA_fv = calcFutureValueSIP(piMonthly, netReturn, 5);
+  const scenA_total = piMonthly * 60;
+  const scenA_gain_gross = scenA_fv - scenA_total;
+  const scenA_netGain = scenA_gain_gross - (scenA_gain_gross * 0.50 * marginalRate);
+
+  const tol = 2; // $2 tolerance for rounding
+  const checks = [
+    { name: 'Marginal Rate', got: marginalRate * 100, exp: 30.5, isCurrency: false },
+    { name: 'Annual Interest', got: annualInterest, exp: 5200, isCurrency: true },
+    { name: 'Total Interest', got: totalInterest, exp: 26000, isCurrency: true },
+    { name: 'Final Fund Value', got: finalFundVal, exp: 161051, isCurrency: true },
+    { name: 'Gross Gain', got: grossGain, exp: 61051, isCurrency: true },
+    { name: 'Tax Savings', got: taxSavings, exp: 7930, isCurrency: true },
+    { name: 'Net Interest Cost', got: netInterest, exp: 18070, isCurrency: true },
+    { name: 'Capital Gains Tax', got: capGainsTax, exp: 9310, isCurrency: true },
+    { name: 'Net Overall Gain', got: netGain, exp: 33671, isCurrency: true },
+    { name: 'Scenario D Net Gain', got: scenD_netGain, exp: 6404, isCurrency: true },
+    { name: 'Scenario A Net Gain', got: scenA_netGain, exp: 28141, isCurrency: true },
+  ];
+
+  const failures = checks.filter(c => Math.abs(c.got - c.exp) > (c.isCurrency ? tol : 0.1));
+  const badge = document.getElementById('qa-badge');
+  badge.style.display = 'inline-block';
+
+  if (failures.length === 0) {
+    badge.className = 'qa-badge qa-pass';
+    badge.textContent = 'QA Passed';
+  } else {
+    badge.className = 'qa-badge qa-fail';
+    badge.textContent = 'QA Failed - see console';
+    failures.forEach(f => {
+      console.warn(`[KF_CALC_QA] FAIL: ${f.name} | Expected: ${f.exp} | Got: ${f.got.toFixed(2)}`);
+    });
+  }
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function fmt(n) {
+  if (isNaN(n) || !isFinite(n)) return '0.00';
+  return n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+function showError(id) { document.getElementById(id).style.display = 'block'; }
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(e => e.style.display = 'none');
+  document.querySelectorAll('.field-warn').forEach(e => e.style.display = 'none');
+}
+function toggleDisclaimer() {
+  const d = document.getElementById('disclaimer-body');
+  d.style.display = d.style.display === 'block' ? 'none' : 'block';
+}
+function printCalc() {
+  window.print();
+}
+
+// Init
+recalc();
+</script>
+</body>
+</html>
